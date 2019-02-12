@@ -459,21 +459,25 @@ bool ignore_map_line(const char *line)
     //Ashmem(Anonymous Shared Memory 匿名共享内存)，是在 Android 的内存管理中提供的一种机制。mmap系统调用...
     if(str_start_with(line,line_len,"/dev/ashmem/"))//dalvik
         return true;
-    if(str_start_with(line,line_len,"/system/lib/lib"))
+    if(str_start_with(line,line_len,"/system/lib"))
         return true;
-    if(str_start_with(line,line_len,"/system/lib/android"))
-        return true;
-    if(str_start_with(line,line_len,"/system/lib/vndk-sp"))
-        return true;
+//    if(str_start_with(line,line_len,"/system/lib/android"))
+//        return true;
+//    if(str_start_with(line,line_len,"/system/lib/vndk-sp"))
+//        return true;
     if(str_start_with(line,line_len,"/system/bin/linker"))
         return true;
-    if(str_start_with(line,line_len,"/system/bin/app_process32"))
+    if(str_start_with(line,line_len,"/system/bin/app_"))///system/bin/app_process64
         return true;
     if(str_start_with(line,line_len,"/system/framework/"))
         return true;
-    if(str_start_with(line,line_len,"/vendor/lib/"))
+    if(str_start_with(line,line_len,"/vendor/lib"))
         return true;
     if(str_start_with(line,line_len,"/dev/binder"))
+        return true;
+    if(str_start_with(line,line_len,"/system/usr/"))
+        return true;
+    if(str_start_with(line,line_len,"/product/lib"))
         return true;
 
     return false;
