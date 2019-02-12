@@ -238,7 +238,7 @@ getVersionInfo() {
     }
 }
 
-void antiFile(char *res) {
+void antiFile(const char *res) {
     struct stat buf;
     int result = stat(res, &buf) == 0 ? 1 : 0;
     if (result) {
@@ -248,7 +248,7 @@ void antiFile(char *res) {
     }
 }
 
-void antiProperty(char *res) {
+void antiProperty(const char *res) {
     char buff[PROP_VALUE_MAX];
     memset(buff, 0, PROP_VALUE_MAX);
     int result =
@@ -260,7 +260,7 @@ void antiProperty(char *res) {
     }
 }
 
-void antiPropertyValueContains(char *res, char *val) {
+void antiPropertyValueContains(const char *res,const char *val) {
     char buff[PROP_VALUE_MAX + 1];
     memset(buff, 0, PROP_VALUE_MAX + 1);
     int lman = __system_property_get(res, buff);
@@ -420,6 +420,132 @@ static int registerNativeMethods(JNIEnv *env, const char *className,
     }
     return JNI_TRUE;
 }
+
+//行结束判断...
+bool str_end_with(const char *line,int line_len,const char *token)
+{
+    if(line_len<=0)
+        line_len = strlen(line);
+    int ref_len = strlen(token);
+    if(line_len>=ref_len && memcmp(line+line_len-ref_len,token,ref_len) == 0)
+        return true;
+    return false;
+}
+
+bool str_start_with(const char *line,int line_len,const char *token)
+{
+    if(line_len<=0)
+        line_len = strlen(line);
+    int ref_len = strlen(token);
+    if(line_len>=ref_len && memcmp(line,token,ref_len) == 0)
+        return true;
+    return false;
+}
+
+//是否需要忽略...
+bool ignore_map_line(const char *line)
+{
+    if(line[0] == '[')
+        return true;
+    if(line[0] == '\n')
+        return true;
+    if(line[0] == '\0')
+        return true;
+    int line_len = strlen(line);
+    if(str_end_with(line,line_len,"(deleted)"))
+        return true;
+    if(str_end_with(line,line_len,".art"))
+        return true;
+    if(str_end_with(line,line_len,".oat"))
+        return true;
+    if(str_end_with(line,line_len,".apk"))
+        return true;
+    if(str_end_with(line,line_len,".ttf"))
+        return true;
+    if(str_end_with(line,line_len,".ttc"))
+        return true;
+    if(str_end_with(line,line_len,".dat"))
+        return true;
+    if(str_end_with(line,line_len,".vdex"))
+        return true;
+    if(str_end_with(line,line_len,".odex"))
+        return true;
+    if(str_end_with(line,line_len,".dex"))
+        return true;
+    if(str_end_with(line,line_len,":s0"))
+        return true;
+    if(str_start_with(line,line_len,"/dev/__properties__"))
+        return true;
+
+    //Ashmem(Anonymous Shared Memory 匿名共享内存)，是在 Android 的内存管理中提供的一种机制。mmap系统调用...
+    if(str_start_with(line,line_len,"/dev/ashmem/"))//dalvik
+        return true;
+    if(str_start_with(line,line_len,"/system/lib/lib"))
+        return true;
+    if(str_start_with(line,line_len,"/system/lib/android"))
+        return true;
+    if(str_start_with(line,line_len,"/system/lib/vndk-sp"))
+        return true;
+    if(str_start_with(line,line_len,"/system/bin/linker"))
+        return true;
+    if(str_start_with(line,line_len,"/system/bin/app_process32"))
+        return true;
+    if(str_start_with(line,line_len,"/system/framework/"))
+        return true;
+    if(str_start_with(line,line_len,"/vendor/lib/"))
+        return true;
+    if(str_start_with(line,line_len,"/dev/binder"))
+        return true;
+
+    return false;
+}
+typedef unsigned char _BYTE;
+void dump_module_map(pid_t pid)
+{
+    FILE* fp;
+    long addr = 0;
+    char *pch;
+    char filename[32];
+    char line[1024];
+
+    if(pid<0){
+        snprintf(filename,sizeof(filename),"/proc/self/maps",pid);
+    }else{
+        snprintf(filename,sizeof(filename),"/proc/%d/maps",pid);
+    }
+    fp = fopen(filename,"r");
+    if(fp!=NULL){
+
+        int v19; // [sp+38h] [bp-DB8h]@12
+        int v20; // [sp+3Ch] [bp-DB4h]@12
+        int v21; // [sp+40h] [bp-DB0h]@12
+        _BYTE v22[4]; // [sp+44h] [bp-DACh]@12
+        //_BYTE v23[3]; // [sp+45h] [bp-DABh]@12
+        int v24; // [sp+48h] [bp-DA8h]@12
+        int v25; // [sp+4Ch] [bp-DA4h]@12
+        int v26; // [sp+50h] [bp-DA0h]@12
+
+        char v31[0x400]; // [sp+9D4h] [bp-41Ch]@12
+        while(fgets(line,sizeof(line),fp))
+        {
+            if ( sscanf(line, "%x-%x %c%c%c%c %x %x:%x %u%s",
+                    &v19, &v20,&v22[0], &v22[1], &v22[2], &v22[3],&v21, &v25,&v26,&v24,v31) == 11 )
+            {
+                if(ignore_map_line(v31))
+                {
+                }
+                else
+                {
+                    LOGE("%s",v31);
+                }
+            }
+
+        }
+        fclose(fp);
+    }
+}
+
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env = NULL;
     jint result = -1;
@@ -429,6 +555,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     getDeviceInfo();
+
+    dump_module_map(getpid());
 
     if (registerNativeMethods(env, gClassName, gMethods,
                               sizeof(gMethods) / sizeof(gMethods[0])) == JNI_FALSE) {

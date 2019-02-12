@@ -1,6 +1,6 @@
 #include "AndroidSysInfo.h"
-//#include <pthread.h>
-#include <unistd.h> // sleep 的头文件
+#include <pthread.h>
+//#include <unistd.h> // sleep 的头文件
 
 #define  LOGW(x...)  __android_log_print(ANDROID_LOG_ERROR,"ANDROIDSYSINFO",x)
 
