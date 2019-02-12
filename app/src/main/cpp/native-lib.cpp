@@ -453,6 +453,7 @@ bool ignore_map_line(const char *line)
         return true;
     if(str_end_with(line,line_len,":s0"))
         return true;
+
     if(str_start_with(line,line_len,"/dev/__properties__"))
         return true;
 
@@ -478,6 +479,33 @@ bool ignore_map_line(const char *line)
     if(str_start_with(line,line_len,"/system/usr/"))
         return true;
     if(str_start_with(line,line_len,"/product/lib"))
+        return true;
+
+
+    if(str_end_with(line,line_len,"/libnative-lib.so"))
+        return true;
+
+    if(str_end_with(line,line_len,"/lib360Nt.so"))
+        return true;
+    if(str_end_with(line,line_len,"/lib360Pay.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libBlueDoveMediaRender.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libBugly.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libgamemaster.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libil2cpp.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libulua.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libunity.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libyoume_voice_engine.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libzlib.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libmain.so"))
         return true;
 
     return false;
