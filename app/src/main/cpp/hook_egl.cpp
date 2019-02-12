@@ -1,3 +1,5 @@
+#ifdef USE_SYSINFO
+
 /*
  * 在/proc/<pid>/cmdline文件中比较进程名称，
  * 在/proc/<pid>/maps文件中查找进程模块，
@@ -140,3 +142,5 @@ int hook_entry(char* a ){
     hook_eglSwapBuffers();
     return 0;
 }
+
+#endif

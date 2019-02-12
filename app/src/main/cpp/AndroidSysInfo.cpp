@@ -1,3 +1,6 @@
+#ifdef USE_SYSINFO
+
+
 #include "AndroidSysInfo.h"
 #include <pthread.h>
 //#include <unistd.h> // sleep 的头文件
@@ -378,3 +381,5 @@ DWORD AndroidCpuUsage::GetUsedCpu()
     return percent;
 
 }
+
+#endif
