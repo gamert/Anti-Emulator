@@ -500,7 +500,7 @@ bool ignore_map_line(const char *line)
     return false;
 }
 typedef unsigned char _BYTE;
-void dump_module_map(pid_t pid)
+void dump_module_map(pid_t pid,std::string &buf)
 {
     FILE* fp;
     long addr = 0;
@@ -536,7 +536,9 @@ void dump_module_map(pid_t pid)
                 }
                 else
                 {
-                    LOGE("%s",v31);
+                    buf.append(v31);
+                    buf.append(";");
+                    //LOGE("%s",v31);
                 }
             }
 
@@ -556,7 +558,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     getDeviceInfo();
 
-    dump_module_map(getpid());
+    std::string buf;
+    dump_module_map(getpid(),buf);
+    LOGE("%s",buf.c_str());
 
     if (registerNativeMethods(env, gClassName, gMethods,
                               sizeof(gMethods) / sizeof(gMethods[0])) == JNI_FALSE) {
