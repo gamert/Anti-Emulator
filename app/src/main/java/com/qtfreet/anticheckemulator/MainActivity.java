@@ -28,7 +28,8 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet000", "CPU频率：" + Check.getCpuFrequency());
         Log.e("qtfreet000", "CPU核心数量：" + Check.getCpuCore());
         Log.e("qtfreet000", "内核信息：" + JniAnti.getKernelVersion());
-        Log.e("qtfreet000", "设备ID：" + JniAnti.getDeviceID());
+        String deviceID = JniAnti.getDeviceID();
+        Log.e("qtfreet000", "设备ID：" + deviceID );
         Log.e("qtfreet000", "已安装App：" + Check.getInstalledApps(this));
         Log.e("qtfreet000", "MAC地址：" + Check.getMacAddress(this));
         Log.e("qtfreet000", "内存大小：" + Check.getMemorySize());

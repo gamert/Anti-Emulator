@@ -123,43 +123,48 @@ char *verifySign(JNIEnv *env) {
 
 
 jstring getDeviceID(JNIEnv *env, jobject instance) {
-    jobject mContext = getApplication(env);
-    if (mContext == NULL) {
         return (env)->NewStringUTF("unknown");
-    }
-    jclass cls_context = (env)->FindClass("android/content/Context");
-    if (cls_context == 0) {
-        return (env)->NewStringUTF("unknown");
-    }
-    jmethodID getSystemService = (env)->GetMethodID(cls_context,
-                                                    "getSystemService",
-                                                    "(Ljava/lang/String;)Ljava/lang/Object;");
-    if (getSystemService == 0) {
-        return (env)->NewStringUTF("unknown");
-    }
-    jfieldID TELEPHONY_SERVICE = (env)->GetStaticFieldID(cls_context,
-                                                         "TELEPHONY_SERVICE", "Ljava/lang/String;");
-    if (TELEPHONY_SERVICE == 0) {
-        return (env)->NewStringUTF("unknown");
-    }
-    jobject str = (env)->GetStaticObjectField(cls_context, TELEPHONY_SERVICE);
-    jobject telephonymanager = (env)->CallObjectMethod(mContext,
-                                                       getSystemService, str);
-    if (telephonymanager == 0) {
-        return (env)->NewStringUTF("unknown");
-    }
-    jclass cls_tm = (env)->FindClass("android/telephony/TelephonyManager");
-    if (cls_tm == 0) {
-        return (env)->NewStringUTF("unknown");
-    }
-    jmethodID getDeviceId = (env)->GetMethodID(cls_tm, "getDeviceId",
-                                               "()Ljava/lang/String;");
-    if (getDeviceId == 0) {
-        return (env)->NewStringUTF("unknown");
-    }
-    jstring deviceid = static_cast<jstring>((env)->CallObjectMethod(telephonymanager, getDeviceId));
-    char *ch = jstringToChar(env, deviceid);
-    return deviceid;
+//    jobject mContext = getApplication(env);
+//    if (mContext == NULL) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jclass cls_context = (env)->FindClass("android/content/Context");
+//    if (cls_context == 0) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jmethodID getSystemService = (env)->GetMethodID(cls_context,
+//                                                    "getSystemService",
+//                                                    "(Ljava/lang/String;)Ljava/lang/Object;");
+//    if (getSystemService == 0) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jfieldID TELEPHONY_SERVICE = (env)->GetStaticFieldID(cls_context,
+//                                                         "TELEPHONY_SERVICE", "Ljava/lang/String;");
+//    if (TELEPHONY_SERVICE == 0) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jobject str = (env)->GetStaticObjectField(cls_context, TELEPHONY_SERVICE);
+//    jobject telephonymanager = (env)->CallObjectMethod(mContext,
+//                                                       getSystemService, str);
+//    if (telephonymanager == 0) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jclass cls_tm = (env)->FindClass("android/telephony/TelephonyManager");
+//    if (cls_tm == 0) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jmethodID getDeviceId = (env)->GetMethodID(cls_tm, "getDeviceId",
+//                                               "()Ljava/lang/String;");
+//    if (getDeviceId == 0) {
+//        return (env)->NewStringUTF("unknown");
+//    }
+//    jstring deviceid;
+//        deviceid = static_cast<jstring>((env)->CallObjectMethod(telephonymanager, getDeviceId));
+//        if (deviceid == NULL) {
+//            return (env)->NewStringUTF("unknown");
+//        }
+//    char *ch = jstringToChar(env, deviceid);
+//    return deviceid;
 }
 
 char *getCpuInfo() { //获取cpu型号
