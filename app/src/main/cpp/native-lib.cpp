@@ -399,27 +399,6 @@ jstring getApkSign(JNIEnv *env, jobject /* this */) {
 
     return env->NewStringUTF(res);
 }
-static const char *gClassName = "com/qtfreet/anticheckemulator/emulator/JniAnti";
-static JNINativeMethod gMethods[] = {
-        {"getApkSign",       "()Ljava/lang/String;", (void *) getApkSign},
-        {"getKernelVersion", "()Ljava/lang/String;", (void *) getKernelVersion},
-        {"getCpuinfo",       "()Ljava/lang/String;", (void *) getCpuinfo},
-        {"getDeviceID",      "()Ljava/lang/String;", (void *) getDeviceID},
-        {"checkAntiFile",    "()I",                  (void *) check},
-};
-
-static int registerNativeMethods(JNIEnv *env, const char *className,
-                                 JNINativeMethod *gMethods, int numMethods) {
-    jclass clazz;
-    clazz = env->FindClass(className);
-    if (clazz == NULL) {
-        return JNI_FALSE;
-    }
-    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
-        return JNI_FALSE;
-    }
-    return JNI_TRUE;
-}
 
 //行结束判断...
 bool str_end_with(const char *line,int line_len,const char *token)
@@ -548,6 +527,56 @@ void dump_module_map(pid_t pid,std::string &buf)
 }
 
 
+//取得进程中的so等信息
+int getInMaps(char *buf,int buf_len)
+{
+    std::string s;
+    dump_module_map(getpid(),s);
+    int len = s.length();
+    if(buf_len>len && buf)
+    {
+        memcpy(buf,s.c_str(),len);
+        buf[len] = 0;
+        return len;
+    }
+    return 0;
+}
+
+
+jstring getProcessMaps(JNIEnv *env, jobject instance) {
+
+    std::string s;
+    dump_module_map(getpid(),s);
+
+    return env->NewStringUTF(s.c_str());
+}
+
+
+
+static const char *gClassName = "com/qtfreet/anticheckemulator/emulator/JniAnti";
+static JNINativeMethod gMethods[] = {
+        {"getApkSign",       "()Ljava/lang/String;", (void *) getApkSign},
+        {"getKernelVersion", "()Ljava/lang/String;", (void *) getKernelVersion},
+        {"getCpuinfo",       "()Ljava/lang/String;", (void *) getCpuinfo},
+        {"getDeviceID",      "()Ljava/lang/String;", (void *) getDeviceID},
+        {"getProcessMaps",      "()Ljava/lang/String;", (void *) getProcessMaps},
+        {"checkAntiFile",    "()I",                  (void *) check},
+};
+
+static int registerNativeMethods(JNIEnv *env, const char *className,
+                                 JNINativeMethod *gMethods, int numMethods) {
+    jclass clazz;
+    clazz = env->FindClass(className);
+    if (clazz == NULL) {
+        return JNI_FALSE;
+    }
+    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
+
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env = NULL;
     jint result = -1;
@@ -558,9 +587,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     getDeviceInfo();
 
-    std::string buf;
-    dump_module_map(getpid(),buf);
-    LOGE("%s",buf.c_str());
+//    std::string buf;
+//    dump_module_map(getpid(),buf);
+//    LOGE("%s",buf.c_str());
 
     if (registerNativeMethods(env, gClassName, gMethods,
                               sizeof(gMethods) / sizeof(gMethods[0])) == JNI_FALSE) {

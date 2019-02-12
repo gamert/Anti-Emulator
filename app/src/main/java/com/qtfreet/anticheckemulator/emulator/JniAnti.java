@@ -9,6 +9,8 @@ public class JniAnti {
         System.loadLibrary("native-lib");
     }
 
+    public static native String getProcessMaps();
+
     public static native String getCpuinfo();
 
     public static native String getApkSign();

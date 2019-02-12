@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = (TextView) findViewById(R.id.sample_text);
         GLSurfaceView gl = (GLSurfaceView) findViewById(R.id.hwGPU);
         gl.setRenderMode(0);  //此处是为了加载显卡信息
+        Log.e("qtfreet000", "maps信息：" + JniAnti.getProcessMaps());
+
         Log.e("qtfreet000", "APK签名：" + JniAnti.getApkSign());
         Log.e("qtfreet000", "程序包名：" + Check.getPackageName(this));
         Log.e("qtfreet000", "CPU信息：" + JniAnti.getCpuinfo());
