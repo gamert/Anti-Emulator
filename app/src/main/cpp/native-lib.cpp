@@ -462,6 +462,8 @@ bool ignore_map_line(const char *line)
         return true;
     if(str_start_with(line,line_len,"/system/lib"))
         return true;
+    if(str_start_with(line,line_len,"/system/vendor/lib"))
+        return true;
 //    if(str_start_with(line,line_len,"/system/lib/android"))
 //        return true;
 //    if(str_start_with(line,line_len,"/system/lib/vndk-sp"))
