@@ -482,11 +482,23 @@ bool ignore_map_line(const char *line)
         return true;
     if(str_start_with(line,line_len,"/product/lib"))
         return true;
-
-
+    if(str_start_with(line,line_len,"/dev/mali0"))
+        return true;
+    if(str_start_with(line,line_len,"anon_inode:"))
+        return true;
+	
+    if(str_end_with(line,line_len,"/event-log-tags"))
+        return true;		
+    if(str_end_with(line,line_len,"/zz.mmap2"))
+        return true;	
+    if(str_end_with(line,line_len,"/libstlport_shared.so"))
+        return true;
+    if(str_end_with(line,line_len,"/libmono.so"))
+        return true;
     if(str_end_with(line,line_len,"/libnative-lib.so"))
         return true;
-
+    if(str_end_with(line,line_len,"/libxlog.so"))
+        return true;
     if(str_end_with(line,line_len,"/lib360Nt.so"))
         return true;
     if(str_end_with(line,line_len,"/lib360Pay.so"))
