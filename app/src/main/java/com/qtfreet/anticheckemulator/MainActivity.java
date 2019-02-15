@@ -5,11 +5,15 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.qtfreet.anticheckemulator.emulator.Check;
 import com.qtfreet.anticheckemulator.emulator.JniAnti;
 import com.qtfreet.anticheckemulator.utils.Util;
+
+import static android.view.View.*;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,6 +23,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Button bt = (Button) findViewById(R.id.button);
+        bt.setOnClickListener(onClickListener);
+
+        InitTextView();
+
+    }
+    private OnClickListener onClickListener=new OnClickListener() {
+        @Override
+        public void onClick(View v){
+            android.widget.Toast.makeText(MainActivity.this,"Button点击事件1",	android.widget.Toast.LENGTH_LONG).show();
+            Log.e("qtfreet000", "maps信息：" + JniAnti.getProcessMaps());
+        }
+    };
+
+
+
+    private  void InitTextView()
+    {
         TextView tv = (TextView) findViewById(R.id.sample_text);
         GLSurfaceView gl = (GLSurfaceView) findViewById(R.id.hwGPU);
         gl.setRenderMode(0);  //此处是为了加载显卡信息
@@ -79,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
             sb.append("特征八：" + "cpu无频率\n");
         }
         tv.setText(sb.toString());
-
     }
 
 }

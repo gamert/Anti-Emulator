@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <map>
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 
 
@@ -431,6 +432,13 @@ bool ignore_map_line(const char *line)
     if(line[0] == '\0')
         return true;
     int line_len = strlen(line);
+    ///system/fonts/
+    if(str_end_with(line,line_len,".ttf"))
+        return true;
+    if(str_end_with(line,line_len,".ttc"))
+        return true;
+
+#if true
     if(str_end_with(line,line_len,"(deleted)"))
         return true;
     if(str_end_with(line,line_len,".art"))
@@ -439,10 +447,7 @@ bool ignore_map_line(const char *line)
         return true;
     if(str_end_with(line,line_len,".apk"))
         return true;
-    if(str_end_with(line,line_len,".ttf"))
-        return true;
-    if(str_end_with(line,line_len,".ttc"))
-        return true;
+
     if(str_end_with(line,line_len,".dat"))
         return true;
     if(str_end_with(line,line_len,".vdex"))
@@ -454,6 +459,8 @@ bool ignore_map_line(const char *line)
     if(str_end_with(line,line_len,":s0"))
         return true;
 
+    if(str_start_with(line,line_len,"/dev/kgsl-3d0"))
+        return true;
     if(str_start_with(line,line_len,"/dev/__properties__"))
         return true;
 
@@ -486,11 +493,11 @@ bool ignore_map_line(const char *line)
         return true;
     if(str_start_with(line,line_len,"anon_inode:"))
         return true;
-	
+
     if(str_end_with(line,line_len,"/event-log-tags"))
-        return true;		
+        return true;
     if(str_end_with(line,line_len,"/zz.mmap2"))
-        return true;	
+        return true;
     if(str_end_with(line,line_len,"/libstlport_shared.so"))
         return true;
     if(str_end_with(line,line_len,"/libmono.so"))
@@ -521,9 +528,10 @@ bool ignore_map_line(const char *line)
         return true;
     if(str_end_with(line,line_len,"/libmain.so"))
         return true;
-
+#endif
     return false;
 }
+
 typedef unsigned char _BYTE;
 void dump_module_map(pid_t pid,std::string &buf)
 {
@@ -541,6 +549,7 @@ void dump_module_map(pid_t pid,std::string &buf)
     fp = fopen(filename,"r");
     if(fp!=NULL){
 
+        std::map<std::string,int> MapStrings;
         int v19; // [sp+38h] [bp-DB8h]@12
         int v20; // [sp+3Ch] [bp-DB4h]@12
         int v21; // [sp+40h] [bp-DB0h]@12
@@ -561,14 +570,25 @@ void dump_module_map(pid_t pid,std::string &buf)
                 }
                 else
                 {
-                    buf.append(v31);
-                    buf.append(";");
+                    std::string key = v31;
+                    //MapStrings.add
+                    MapStrings[key] = 1;
+                    //buf.append(v31);
+                    //buf.append(";");
                     //LOGE("%s",v31);
                 }
             }
 
         }
         fclose(fp);
+        LOGE("MapStrings:%d\n",MapStrings.size());
+        std::map<std::string,int>::iterator itr = MapStrings.begin();
+        for(;itr!=MapStrings.end();++itr)
+        {
+            //LOGE("%s",itr->first.c_str());
+            buf.append(itr->first.c_str());
+            buf.append(";");
+        }
     }
 }
 
