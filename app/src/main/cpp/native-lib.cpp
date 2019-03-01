@@ -11,6 +11,9 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <map>
+#include <sys/ioctl.h>
+//#include <linux/android_alarm.h>
+
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 
 
@@ -477,6 +480,8 @@ bool ignore_map_line(const char *line)
 //        return true;
     if(str_start_with(line,line_len,"/system/bin/linker"))
         return true;
+    if(str_start_with(line,line_len,"/system/fonts"))
+        return true;        
     if(str_start_with(line,line_len,"/system/bin/app_"))///system/bin/app_process64
         return true;
     if(str_start_with(line,line_len,"/system/framework/"))
@@ -642,6 +647,150 @@ static int registerNativeMethods(JNIEnv *env, const char *className,
     return JNI_TRUE;
 }
 
+typedef long long __int64;
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+#define MSG_OP(size,opcode,subcode)\
+	char test[size];\
+	*((WORD *)(&test[2])) = opcode;\
+	*((WORD *)(&test[4])) = subcode;
+
+#define _INTSIZEOF(n)          ((sizeof(n) + sizeof(int) - 1) & ~(sizeof(int) - 1))
+
+#define __crt_va_start_a(ap, v) ((void)(ap = (va_list)_ADDRESSOF(v) + _INTSIZEOF(v)))
+#define __crt_va_arg(ap, t)     (*(t*)((ap += _INTSIZEOF(t)) - _INTSIZEOF(t)))
+#define __crt_va_end(ap)        ((void)(ap = (va_list)0))
+
+
+// MSG_PRINTF_SEND added by zhaojun 10-15
+int MSG_PRINTF_SEND(WORD opcode, WORD subcode, const char* szFormat, ...)
+{
+    MSG_OP(2048, opcode,0);
+
+    char* pHeader = test;
+    char* pAttachHeader = pHeader + 6;
+//	short iOffset = 0;
+
+    *((WORD*)(pHeader + 4)) = subcode;
+
+    va_list argptr;
+    va_start(argptr, szFormat);
+
+//	if(szFormat)
+    while(*szFormat != 0)
+    {
+        // 有格式化参数
+        if (*szFormat != '%')
+        {
+            *(pAttachHeader++) = *(szFormat++);
+        }
+        else
+        {
+            // 特殊符号
+            size_t		nDataLen = 0;
+            size_t		nOffset = 0;
+#ifdef _WIN32
+            char* str = (char*)(argptr);
+#else
+            char* str = va_arg(argptr, char*);
+#endif
+            void*		target = str;
+            switch(*(szFormat + 1))
+            {
+                case 's':	//以0或者长度约束结束的字符串；
+                {
+                    //if(argptr == NULL)
+                    //{
+                    //	assert(false);
+                    //	DevLog("[%s][%d] argptr == NULL.\n",__FUNCTION__,__LINE__);
+                    //	return 0;
+                    //}
+#ifdef _WIN32
+                    str = (char*)(*((DWORD*)argptr));
+#endif
+                    nDataLen = strlen(str);
+                    if (*(szFormat + 2) != '\0')
+                    {
+                        ++nDataLen;	//末尾的字符串不需要加分隔符0
+                    }
+                    nOffset = _INTSIZEOF(const char*);
+                    target = str;
+                }
+                    break;
+                case 'a':
+                {
+                    //if(argptr == NULL)
+                    //{
+                    //	assert(false);
+                    //	DevLog("[%s][%d] argptr == NULL.\n",__FUNCTION__,__LINE__);
+                    //	return 0;
+                    //}
+                    //char* str = (char*)(*((DWORD*)argptr));
+                    nDataLen = strlen(str);
+                    //不加0，字符串直接有关键字分割
+                    nOffset = _INTSIZEOF(const char*);
+                    target = str;
+                }
+                    break;
+                case 'S':	//BSTR字符串；
+                {
+                    //if(argptr == NULL)
+                    //{
+                    //	assert(false);
+                    //	DevLog("[%s][%d] argptr == NULL.\n",__FUNCTION__,__LINE__);
+                    //	return 0;
+                    //}
+                    //char* str = (char*)(*((DWORD*)argptr));
+                    nDataLen = strlen(str);
+                    //����WORD
+                    {
+                        WORD wLen = nDataLen;
+                        memcpy(pAttachHeader, &wLen, 2);
+                        pAttachHeader += 2;
+                    }
+                    nOffset = _INTSIZEOF(const char*);
+                    target = str;
+                }
+                    break;
+                case 'd':
+                    nDataLen = sizeof(int);
+                    nOffset = _INTSIZEOF(int);
+                    break;
+                case 'w':
+                    nDataLen = sizeof(WORD);
+                    nOffset = _INTSIZEOF(WORD);
+                    break;
+                case 'b':
+                    nDataLen = sizeof(BYTE);
+                    nOffset = _INTSIZEOF(BYTE);
+                    break;
+                case 'L':
+                    nDataLen = sizeof(__int64);
+                    nOffset = _INTSIZEOF(__int64);
+                    break;
+                default:
+                {
+#ifdef _DEBUG
+                    throw("not support convert character");
+#endif
+                }
+            }
+
+            memcpy(pAttachHeader, target, nDataLen);
+            pAttachHeader += nDataLen;
+#ifndef __ANDROID__
+            argptr += nOffset;
+#endif
+            szFormat += 2;
+        }
+    }
+    *((WORD*)pHeader) = pAttachHeader - pHeader;
+    //*((WORD*)(pHeader + 4)) = pAttachHeader - pHeader;
+
+    return 1;//g_pGameSession->CallEngineSend(pHeader, pAttachHeader - pHeader, 0);
+    //return engine->NET_Send(pHeader, pAttachHeader - pHeader, 0);
+}
+
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env = NULL;
@@ -650,6 +799,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return -1;
     }
+
+
+    //int len = MSG_PRINTF_SEND(1, 2, "%s%s", "abcd","efgh");
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     getDeviceInfo();
 
